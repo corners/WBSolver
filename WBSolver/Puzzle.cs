@@ -6,46 +6,72 @@ using System.Threading.Tasks;
 
 namespace WBSolver
 {
-    public sealed class Puzzle
+    public struct Point
     {
-        public struct Point
+        public Point(int x, int y)
         {
-            public Point(int x, int y)
-            {
-                this.x = x;
-                this.y = y;
-            }
-
-            public int x;
-            public int y;
-
-            public Point Add(Point pt)
-            {
-                return new Point(this.x + pt.x, this.y + pt.y);
-            }
+            this.x = x;
+            this.y = y;
         }
 
+        public int x;
+        public int y;
+
+        public Point Add(Point pt)
+        {
+            return new Point(this.x + pt.x, this.y + pt.y);
+        }
+    }
+
+    public sealed class Puzzle
+    {
         public Puzzle(char[,] board, Func<IEnumerable<char>, WordMatch> isMatch)
         {
             _board = board;
             _isMatch = isMatch;
         }
 
+        public Puzzle(int length, IList<char> board, Func<IEnumerable<char>, WordMatch> isMatch)
+        {
+            _board = new char[length, length];
+            foreach (var y in Enumerable.Range(0, length))
+            {
+                foreach (var x in Enumerable.Range(0, length))
+                {
+                    _board[y, x] = board[(y * length) + x];
+                }
+            }
+            _isMatch = isMatch;
+        }
+
         readonly Func<IEnumerable<char>, WordMatch> _isMatch;
         readonly char[,] _board;
 
-        public override string ToString()
+        public IEnumerable<KeyValuePair<Point, char>> Values()
         {
-            foreach (var x in Enumerable.Range(0, _board.GetUpperBound(0)))
+            foreach (var y in Enumerable.Range(0, _board.GetLength(0)))
             {
-                _board.Get
-                //.Select(x => Enumerable.Range(0, _board.GetUpperBound(1)).Select(y =>
+                foreach (var x in Enumerable.Range(0, _board.GetLength(1)))
+                {
+                    yield return new KeyValuePair<Point, char>(new Point(x, y), _board[y, x]);
+                }
             }
-            //var x = _board.Select(chs => new string(chs));
-            //return base.ToString();
         }
 
-
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            foreach (var y in Enumerable.Range(0, _board.GetLength(0)))
+            {
+                foreach (var x in Enumerable.Range(0, _board.GetLength(1)))
+                {
+                    sb.Append(_board[y, x]);
+                }
+                sb.Append("\r\n");
+            }
+            return sb.ToString();
+        }
+        
         List<Point> Surrounding(Point pt, IList<Point> path)
         {
             var offsets = new[]
@@ -111,9 +137,13 @@ namespace WBSolver
             return words;
         }
 
+        readonly char Blank = ' ';
+
         public Puzzle RemovePath(IEnumerable<Point> path)
         {
-            throw new NotImplementedException();
+            var lookup = new HashSet<Point>(path);
+            var ps = Values().Select(a => lookup.Contains(a.Key) ? Blank : a.Value).ToList();
+            return new Puzzle(_board.GetLength(0), ps, _isMatch);
         }
     }
 }
