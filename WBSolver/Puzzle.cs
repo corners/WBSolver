@@ -101,7 +101,7 @@ namespace WBSolver
             return sb.ToString();
         }
         
-        List<Point> Surrounding(Point pt, IList<Point> path)
+        List<Point> SurroundingPoints(Point pt, IList<Point> path)
         {
             var offsets = new[]
             {
@@ -122,7 +122,7 @@ namespace WBSolver
                 && 0 <= pt.y && pt.y <= _board.GetUpperBound(1);
         }
 
-        IEnumerable<List<Point>> GetPaths(List<Point> path)
+        IEnumerable<List<Point>> ExtendPathIfValid(List<Point> path)
         {
             var match = _isMatch(path.Select(ToChar));
             if (match == WordMatch.MatchStart || match == WordMatch.MatchWod)
@@ -131,11 +131,11 @@ namespace WBSolver
                 if (match == WordMatch.MatchWod)
                     yield return path;
 
-                var surrounds = Surrounding(hd, path);
+                var surrounds = SurroundingPoints(hd, path);
                 foreach (var s in surrounds)
                 {
                     var newPath = path.Union(new[] { s }).ToList();
-                    foreach (var ps in GetPaths(newPath))
+                    foreach (var ps in ExtendPathIfValid(newPath))
                     {
                         yield return ps;
                     }
@@ -158,7 +158,7 @@ namespace WBSolver
             var points = Enumerable.Range(0, _board.GetLength(0))
                                    .SelectMany(x => Enumerable.Range(0, _board.GetLength(1)).Select(y => new Point(x, y)));
 
-            var words = points.Select(p => GetPaths(new List<Point>() { p }))
+            var words = points.Select(p => ExtendPathIfValid(new List<Point>() { p }))
                               .SelectMany(paths => paths)
                               .Select(pts => pts.Select(ToChar))
                               .Select(ToString)
