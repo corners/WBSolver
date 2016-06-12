@@ -58,6 +58,35 @@ namespace WBSolver
             }
         }
 
+        public IList<IList<char>> Columns()
+        {
+            var cols = new List<IList<char>>();
+            foreach (var x in Enumerable.Range(0, _board.GetLength(1)))
+            {
+                var list = new List<char>();
+                foreach (var y in Enumerable.Range(0, _board.GetLength(0)))
+                {
+                    list.Add(_board[y, x]);
+                }
+                cols.Add(list);
+            }
+            return cols;
+        }
+
+        public static char[,] ColumnsToBoard(IList<IList<char>> columns)
+        {
+            var length = columns.Count();
+            var board = new char[length, length];
+            for (int x = 0; x < length; x++)
+            {
+                for (int y = 0; y < length; y++)
+                {
+                    board[y, x] = columns[x][y];
+                }
+            }
+            return board;
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -143,7 +172,20 @@ namespace WBSolver
         {
             var lookup = new HashSet<Point>(path);
             var ps = Values().Select(a => lookup.Contains(a.Key) ? Blank : a.Value).ToList();
-            return new Puzzle(_board.GetLength(0), ps, _isMatch);
+            var p1 = new Puzzle(_board.GetLength(0), ps, _isMatch);
+            var cols = p1.Columns().Select(Dropdown).ToList();
+            var board = Puzzle.ColumnsToBoard(cols);
+            return new Puzzle(board, _isMatch);
+        }
+
+        IList<char> Dropdown(IList<char> column)
+        {
+            var length = column.Count;
+            var nonBlank = column.Where(c => c != Blank).ToList();
+            return Enumerable.Range(0, length - nonBlank.Count)
+                             .Select(n => Blank)
+                             .Concat(nonBlank)
+                             .ToList();
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WBSolver;
+using System.Collections.Generic;
 
 namespace WBUnitTests
 {
@@ -40,6 +41,56 @@ namespace WBUnitTests
             var expected = p1.ToString();
             var actual = p2.ToString();
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Columns()
+        {
+            var puzzle = new char[,]
+            {
+                { 'A', 'T', 'G' },
+                { 'C', 'A', 'R' },
+                { 'C', 'D', 'O' },
+            };
+            var p = new Puzzle(puzzle, (x) => WordMatch.Unknown);
+            var actual = p.Columns();
+            var expected = new List<List<char>>
+            {
+                new List<char> { 'A', 'C', 'C' },
+                new List<char> { 'T', 'A', 'D' },
+                new List<char> { 'G', 'R', 'O' },
+            };
+
+            Assert.IsTrue(Enumerable.SequenceEqual(expected[0], actual[0]));
+            Assert.IsTrue(Enumerable.SequenceEqual(expected[1], actual[1]));
+            Assert.IsTrue(Enumerable.SequenceEqual(expected[2], actual[2]));
+        }
+
+        [TestMethod]
+        public void Columns_ToBoard()
+        {
+            var expected = new char[,]
+            {
+                { 'A', 'T', 'G' },
+                { 'C', 'A', 'R' },
+                { 'C', 'D', 'O' },
+            };
+            var columns = new List<IList<char>>
+            {
+                new List<char> { 'A', 'C', 'C' },
+                new List<char> { 'T', 'A', 'D' },
+                new List<char> { 'G', 'R', 'O' },
+            };
+
+            var actual = Puzzle.ColumnsToBoard(columns);
+
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    Assert.AreEqual(expected[y,x], actual[y,x]);
+                }
+            }
         }
 
         [TestMethod]
@@ -82,7 +133,7 @@ namespace WBUnitTests
             p = p.RemovePath(path);
 
             var actual = p.ToString();
-            var expected = "   \r\n  G\r\nC R\r\n";
+            var expected = "   \r\nC G\r\nC R\r\n";
             Assert.AreEqual(expected, actual);
         }
     }
